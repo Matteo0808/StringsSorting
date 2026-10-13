@@ -1,3 +1,6 @@
+#ifndef SORTING_H
+#define SORTING_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,13 +26,13 @@ enum ErrSuc{
     RETURN_ERROR_FSTAT = 3,
     RETURN_ERROR_FILEREAD = 4,
     RETURN_ERROR_FILECREATE = 5,
-    RETURN_ERROR_FILEWRITE_TASK1 = 6,
+    RETURN_ERROR_FILEWRITE_SORT_BEG = 6,
     RETURN_ERROR_TOO_LARGE_FILE_SIZE = 7,
     RETURN_ERROR_MEMORY_ALLOCATION = 8,
-    RETURN_ERROR_FILEADD_TASK2 = 9,
-    RETURN_ERROR_FILEWRITE_TASK2 = 10,
-    RETURN_ERROR_FILEADD_TASK3 = 11,
-    RETURN_ERROR_FILEWRITE_TASK3 = 12,
+    RETURN_ERROR_FILEADD_SORT_END = 9,
+    RETURN_ERROR_FILEWRITE_SORT_END = 10,
+    RETURN_ERROR_FILEADD_UNS = 11,
+    RETURN_ERROR_FILEWRITE_UNS = 12,
     RETURN_ERROR_CONSOLE_INPUT = 13,
 };
 
@@ -83,6 +86,7 @@ void ChangeEndlsToNulls(Info *programInfo);
 void ChangeNullsToEndls(Info *programInfo);
 
 void ProgramDestroy(Info *programInfo DEBUG(, int fileOutUnsortedDescriptor, int fileOutInOneLineDescriptor));
+
 
 //TODO - struct!!!!!!!!!!!!!!! 
 ///@note completed
@@ -284,7 +288,7 @@ void PrintfError(ErrSuc error){
         case (RETURN_ERROR_FILECREATE):
             printf("Error in input file creating or opening in fuction fopen() in sorting by beginning, maybe you should check console arguments\n");
             break;
-        case (RETURN_ERROR_FILEWRITE_TASK1):
+        case (RETURN_ERROR_FILEWRITE_SORT_BEG):
             printf("Error in input file writing in fuction fprintf() in sorting by beginning\n");
             break;
         case (RETURN_ERROR_TOO_LARGE_FILE_SIZE):
@@ -293,16 +297,16 @@ void PrintfError(ErrSuc error){
         case (RETURN_ERROR_MEMORY_ALLOCATION):
             printf("Error in memory allocation\n");
             break;
-        case (RETURN_ERROR_FILEADD_TASK2):
+        case (RETURN_ERROR_FILEADD_SORT_END):
             printf("Error in input file opening in fuction fopen() in sorting by ending, maybe you should check console arguments\n");
             break;
-        case (RETURN_ERROR_FILEWRITE_TASK2):
+        case (RETURN_ERROR_FILEWRITE_SORT_END):
             printf("Error in input file writing in fuction fprintf() in sorting by ending\n");
             break;
-        case (RETURN_ERROR_FILEADD_TASK3):
+        case (RETURN_ERROR_FILEADD_UNS):
             printf("Error in input file opening in fuction fopen() in outputting unsorted text, maybe you should check console arguments\n");
             break;
-        case (RETURN_ERROR_FILEWRITE_TASK3):
+        case (RETURN_ERROR_FILEWRITE_UNS):
             printf("Error in input file writing in fuction fwrite() outputting unsorted text\n");
             break;
         case (RETURN_ERROR_CONSOLE_INPUT):
@@ -360,7 +364,7 @@ ErrSuc SortingByBeginnings(Info *programInfo){
 
     DEBUG(printf("OpenOutFile1\n");)
 
-    QuickSort(programInfo->arrLines, sizeof(Line), 0, programInfo->arrSize - 1, CompareStrOneginAscend);
+    QuickSort(programInfo->arrLines, sizeof(Line), 0, programInfo->arrSize - 1, CompareStrOneginBeginning);
 
     programInfo->fileOut /*_Descriptor*/ = fopen("output.txt", "a"/*O_CREAT | O_RDWR | O_TRUNC, 0666*/);
 
@@ -376,7 +380,7 @@ ErrSuc SortingByBeginnings(Info *programInfo){
         if (fprintf(programInfo->fileOut, "%s\n", programInfo->arrLines[index].line) <= 0){
             fclose(programInfo->fileOut /*_Descriptor*/);
             
-            return RETURN_ERROR_FILEWRITE_TASK1;
+            return RETURN_ERROR_FILEWRITE_SORT_BEG;
         }
     }
 
@@ -391,7 +395,7 @@ ErrSuc SortingByEndings(Info *programInfo){
 
     DEBUG(printf("OpenOutFile1\n");)
 
-    qsort(programInfo->arrLines, programInfo->arrSize, sizeof(Line), CompareStrOneginDescend);
+    qsort(programInfo->arrLines, programInfo->arrSize, sizeof(Line), CompareStrOneginEnding);
 
     if(programInfo->fileOut == NULL){
         programInfo->fileOut /*_Descriptor*/ = fopen("output.txt", "a"/*O_CREAT | O_RDWR | O_TRUNC, 0666*/);
@@ -400,7 +404,7 @@ ErrSuc SortingByEndings(Info *programInfo){
     if (programInfo->fileOut /*_Descriptor*/ == NULL){
         fclose(programInfo->fileOut /*_Descriptor*/);
         DEBUG(printf("hui\n");)
-        return RETURN_ERROR_FILEADD_TASK2;
+        return RETURN_ERROR_FILEADD_SORT_END;
     }
 
     fputs("===Sorting=By=Ends===\n\n", programInfo->fileOut);
@@ -409,7 +413,7 @@ ErrSuc SortingByEndings(Info *programInfo){
         if (fprintf(programInfo->fileOut, "%s\n", programInfo->arrLines[index].line) <= 0){
             fclose(programInfo->fileOut /*_Descriptor*/);
             
-            return RETURN_ERROR_FILEWRITE_TASK2;
+            return RETURN_ERROR_FILEWRITE_SORT_END;
         }
     }
 
@@ -429,7 +433,7 @@ ErrSuc OutputUnsortedText(Info *programInfo){
 
     if (programInfo->fileOut /*_Descriptor*/ == NULL){
         fclose(programInfo->fileOut /*_Descriptor*/);
-        return RETURN_ERROR_FILEADD_TASK3;
+        return RETURN_ERROR_FILEADD_UNS;
     }
 
     ChangeNullsToEndls(programInfo);
@@ -515,7 +519,7 @@ ErrSuc BufferToLinesFragmentation(Info *programInfo){
         else{
             if(index == 0){
                 programInfo->arrLines[index].len = strlen(programInfo->arrLines[index].line);
-            }
+            }//TODO - 
             else{
                 programInfo->arrLines[index].len = programInfo->arrLines[index + 1].line - programInfo->arrLines[index].line - 1;
             }
@@ -539,3 +543,5 @@ void ProgramDestroy(Info *programInfo DEBUG(, int fileOutInOneLineDescriptor, in
     programInfo->error = RETURN_POISON;
     programInfo->fileOut = NULL;
 }
+
+#endif
